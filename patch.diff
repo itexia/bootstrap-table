@@ -1,0 +1,49 @@
+From b938677027fd9eb23e8c5001b8a88c289dde60f0 Mon Sep 17 00:00:00 2001
+From: Susann Sgorzaly <susann.sgorzaly@itexia.com>
+Date: Tue, 16 Oct 2018 17:52:28 +0200
+Subject: [PATCH] itexia adjustments for export (infinite scrolling)
+
+---
+ dist/extensions/export/bootstrap-table-export.js | 25 +++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
+
+diff --git a/dist/extensions/export/bootstrap-table-export.js b/dist/extensions/export/bootstrap-table-export.js
+index 6de4ffe..b07776f 100644
+--- a/dist/extensions/export/bootstrap-table-export.js
++++ b/dist/extensions/export/bootstrap-table-export.js
+@@ -99,12 +99,27 @@
+                             }));
+                         };
+ 
+-                    if (that.options.exportDataType === 'all' && that.options.pagination) {
+-                        that.$el.one(that.options.sidePagination === 'server' ? 'post-body.bs.table' : 'page-change.bs.table', function () {
+-                            doExport();
++                    if (that.options.exportDataType === 'all') {
++                        if (that.options.pagination) {
++                            that.$el.one(that.options.sidePagination === 'server' ? 'post-body.bs.table' : 'page-change.bs.table', function () {
++                                doExport();
++                                that.togglePagination();
++                            });
+                             that.togglePagination();
+-                        });
+-                        that.togglePagination();
++                        } else if (that.options.infiniteScrolling) {
++                            var data = that.getData();
++                            var exportData = {};
++                            if (that.options.sidePagination === 'server') {
++                                data = {total: that.options.totalRows};
++                                data.activeFilters = that.options.activeFilters;
++                                data[that.options.dataField] = that.getData();
++                            }
++
++                            exportData = that.getAllData();
++                            that.load(exportData);
++                            doExport();
++                            that.load(data);
++                        }
+                     } else if (that.options.exportDataType === 'selected') {
+                         var data = that.getData(),
+                             selectedData = that.getAllSelections();
+-- 
+2.10.1
+
